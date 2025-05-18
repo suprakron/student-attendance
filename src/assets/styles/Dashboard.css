@@ -1,0 +1,115 @@
+.dashboard-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to right, #e0f7fa, #80deea);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.dashboard-card {
+  background-color: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+}
+
+.dashboard-title {
+  font-size: 28px;
+  font-weight: bold;
+  color: #006064;
+  margin-bottom: 10px;
+}
+
+.dashboard-subtitle {
+  font-size: 16px;
+  color: #004d40;
+  margin-bottom: 30px;
+}
+
+.checked-summary {
+  font-size: 20px;
+  font-weight: bold;
+  color: #00796b;
+  margin-bottom: 20px;
+}
+
+.checked-list {
+  list-style: none;
+  padding: 0;
+  text-align: left;
+}
+
+.checked-list li {
+  background-color: #b2ebf2;
+  margin: 8px 0;
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-size: 16px;
+  color: #004d40;
+  transition: background 0.3s ease;
+}
+
+.checked-list li:hover {
+  background-color: #4dd0e1;
+  color: white;
+}
+.date-selector {
+  margin: 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 1rem;
+}
+
+.date-selector input {
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+.date-picker {
+  margin: 16px 0;
+  font-size: 16px;
+}
+
+.date-picker input {
+  padding: 6px 12px;
+  margin-left: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+}
+.level-container {
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: #f5f8ff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+}
+
+.level-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #003366;
+  margin-bottom: 10px;
+}
+
+.room-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 10px;
+  color: #444;
+}
+
+.student-list {
+  list-style: none;
+  padding-left: 20px;
+}
+
+.student-list li {
+  margin-bottom: 5px;
+}
+
