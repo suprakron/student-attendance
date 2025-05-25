@@ -11,8 +11,6 @@ const Attendance = () => {
     axios.get('http://localhost:4000/api/students')
       .then(res => {
         setStudents(res.data);
-
-        // ✅ สร้าง initial attendance data
         const initialData = {};
         res.data.forEach(student => {
           initialData[student.id] = { status: '', remark: '' };

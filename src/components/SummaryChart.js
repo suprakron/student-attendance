@@ -1,7 +1,6 @@
 // src/components/SummaryChart.js
 import React, { useEffect, useState } from 'react';
-import { dbs } from '../firebase';
-import { collection, getDocs } from 'firebase/firestore';
+ 
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -20,12 +19,9 @@ const SummaryChart = () => {
 
   useEffect(() => {
     const fetchAttendance = async () => {
-      const snapshot = await getDocs(collection(dbs, 'attendance'));
-      const data = [];
+      
 
-      snapshot.forEach(doc => {
-        data.push(doc.data());
-      });
+      
 
       const summary = {
         present: 0,
@@ -34,12 +30,7 @@ const SummaryChart = () => {
         leave: 0,
       };
 
-      data.forEach(record => {
-        const status = record.status;
-        if (summary[status] !== undefined) {
-          summary[status]++;
-        }
-      });
+ 
 
       setChartData({
         labels: ['มาเรียน', 'มาสาย', 'ขาด', 'ลา'],

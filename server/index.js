@@ -1,59 +1,111 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
-
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 const app = express();
 const PORT = 4000;
 
-// เชื่อมต่อ SQLite
 const db = new sqlite3.Database('../server/student_checklist.db', (err) => {
   if (err) {
     console.error('❌ ไม่สามารถเชื่อมต่อฐานข้อมูล:', err.message);
   } else {
-    db.run("PRAGMA journal_mode = WAL;");
-    console.log('✅ เชื่อมต่อฐานข้อมูล SQLite สำเร็จ');
+    db.run("PRAGMA busy_timeout = 5000");
+    db.run("PRAGMA journal_mode = WAL");
+    console.log("⚙️ ตั้งค่า busy_timeout และ WAL mode แล้ว");
   }
 });
 
 app.use(cors());
 app.use(bodyParser.json());
 
-// สร้างตาราง TS01_DetailStudent หากยังไม่มี
+
+
+app.post('/register', async (req, res) => {
+  const { firstName, lastName, telephone, classroom, email, password } = req.body;
+  const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+  db.serialize(() => {
+    db.run("BEGIN TRANSACTION");
+    db.run(
+      `INSERT INTO TS03_DataRegister (firstName, lastName, telephone, classroom, email, password) VALUES (?, ?, ?, ?, ?, ?)`,
+      [firstName, lastName, telephone, classroom, email, hashedPassword],
+      function (err) {
+        if (err) {
+          db.run("ROLLBACK");
+          return res.status(500).json({ error: err.message });
+        }
+        db.run(
+          `INSERT INTO TS04_dataLogin (email, password) VALUES (?, ?)`,
+          [email, hashedPassword],
+          function (err2) {
+            if (err2) {
+              db.run("ROLLBACK");
+              return res.status(500).json({ error: err2.message });
+            }
+            db.run("COMMIT");
+            return res.status(200).json({ message: 'User registered successfully' });
+          }
+        );
+      }
+    );
+  });
+});
+
+app.post('/login', (req, res) => {
+  const { email, password } = req.body;
+
+  const query = `SELECT * FROM TS04_dataLogin WHERE email = ?`;
+
+  db.get(query, [email], async (err, user) => {
+    if (err) return res.status(500).json({ error: 'Database error' });
+
+    if (!user) return res.status(401).json({ error: 'Invalid email or password' });
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ error: 'Invalid email or password' });
+
+    res.json({ message: 'Login successful', user });
+  });
+});
+
+
+
 db.serialize(() => {
   db.run("PRAGMA journal_mode = WAL;");
   console.log("⚙️ ตั้งค่า WAL mode แล้ว");
 
-  db.run(`
-    CREATE TABLE IF NOT EXISTS TS01_DetailStudent (
-      id TEXT PRIMARY KEY,
-      firstname TEXT,
-      lastname TEXT,
-      classlevel TEXT
-    )
-  `, (err) => {
-    if (err) console.error('❌ CREATE TABLE error:', err.message);
-    else console.log('✅ สร้างตาราง TS01_DetailStudent (ถ้ายังไม่มี)');
-  });
+  // db.run(`
+  //   CREATE TABLE IF NOT EXISTS TS01_DetailStudent (
+  //     id TEXT PRIMARY KEY,
+  //     firstname TEXT,
+  //     lastname TEXT,
+  //     classlevel TEXT
+  //   )
+  // `, (err) => {
+  //   if (err) console.error('❌ CREATE TABLE error:', err.message);
+  //   else console.log('✅ สร้างตาราง TS01_DetailStudent (ถ้ายังไม่มี)');
+  // });
 
-  // สร้างตาราง TS02_Attendance หากยังไม่มี
-  db.run(`
-    CREATE TABLE IF NOT EXISTS TS02_Attendance (
-      attendance_id INTEGER PRIMARY KEY AUTOINCREMENT,
-      student_id TEXT,
-      class_name TEXT,
-      date TEXT,
-      status TEXT,
-      remark TEXT,
-      FOREIGN KEY(student_id) REFERENCES TS01_DetailStudent(id)
-    )
-  `, (err) => {
-    if (err) console.error('❌ CREATE TABLE TS02_Attendance error:', err.message);
-    else console.log('✅ สร้างตาราง TS02_Attendance (ถ้ายังไม่มี)');
-  });
+  // db.run(`
+  //   CREATE TABLE IF NOT EXISTS TS02_Attendance (
+  //     attendance_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  //     student_id TEXT,
+  //     class_name TEXT,
+  //     date TEXT,
+  //     status TEXT,
+  //     remark TEXT,
+  //     FOREIGN KEY(student_id) REFERENCES TS01_DetailStudent(id)
+  //   )
+  // `, (err) => {
+  //   if (err) console.error('❌ CREATE TABLE TS02_Attendance error:', err.message);
+  //   else console.log('✅ สร้างตาราง TS02_Attendance (ถ้ายังไม่มี)');
+  // });
 });
 
-// Route GET ดึงข้อมูลนักเรียนทั้งหมด
+
 app.get('/api/students', (req, res) => {
   const sql = `SELECT * FROM TS01_DetailStudent`;
   db.all(sql, [], (err, rows) => {
@@ -66,7 +118,6 @@ app.get('/api/students', (req, res) => {
   });
 });
 
-// Route POST เพิ่มนักเรียนใหม่
 app.post('/api/students', (req, res) => {
   const { id, firstname, lastname, classlevel } = req.body;
   const sql = `
@@ -83,7 +134,6 @@ app.post('/api/students', (req, res) => {
   });
 });
 
-// Route POST บันทึกข้อมูลการเช็กชื่อ
 app.post('/api/attendance', (req, res) => {
   const attendanceList = req.body;
 
@@ -115,7 +165,7 @@ app.post('/api/attendance', (req, res) => {
   });
 });
 
-// ✅ route: ดึงรายชื่อห้องเรียนที่มีการเช็กชื่อในวันที่กำหนด
+
 app.get('/api/attendance/rooms', (req, res) => {
   const date = req.query.date;
   const query = `
@@ -134,7 +184,6 @@ app.get('/api/attendance/rooms', (req, res) => {
   });
 });
 
-// ✅ route: ดึงรายชื่อห้องเรียนทั้งหมด
 app.get('/api/rooms/all', (req, res) => {
   const query = `
     SELECT DISTINCT classlevel AS level, classroom AS room
@@ -151,7 +200,6 @@ app.get('/api/rooms/all', (req, res) => {
   });
 });
 
-// ✅ route: ดึงรายชื่อนักเรียนแบบ grouped ตาม classlevel/classroom
 app.get('/api/students/grouped', (req, res) => {
   db.all(`
     SELECT id, firstname, lastname, classlevel, classroom
@@ -174,6 +222,72 @@ app.get('/api/students/grouped', (req, res) => {
 
     res.json(grouped);
   });
+});
+// GET students who haven't checked in today for a specific class
+const util = require('util');
+const dbAll = util.promisify(db.all).bind(db);
+
+app.get('/api/attendance/unmarked', async (req, res) => {
+  const { classlevel, classroom, date } = req.query;
+  const today = date || new Date().toISOString().split('T')[0];
+  const className = `${classlevel}/${classroom}`;
+
+  try {
+    console.log('Query params:', req.query);
+
+    const rows = await dbAll(
+      `
+SELECT s.id, s.firstname, s.lastname,
+       a.status, a.class_name
+FROM students s
+LEFT JOIN TS02_Attendance a
+  ON s.id = a.student_id AND a.date = ?
+WHERE s.classlevel = ? AND s.classroom = ?
+
+      `,
+      [today, className, classlevel, classroom]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error('❌ Error fetching unmarked attendance:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/attendance/mark', async (req, res) => {
+  const { student_id, date, status, remark, class_name } = req.body;
+
+  try {
+    await db.run(`
+      INSERT INTO TS02_Attendance (student_id, class_name, date, status, remark)
+      VALUES (?, ?, ?, ?, ?)
+    `, [student_id, class_name, date, status, remark]);
+
+    res.json({ message: '✅ เช็คชื่อสำเร็จ' });
+  } catch (err) {
+    console.error('❌ Error inserting attendance:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ตรวจสอบสถานะการเช็คชื่อของห้องเรียนในวันนั้น
+app.get('/api/attendance/status', async (req, res) => {
+  const { classlevel, classroom, date } = req.query;
+
+  try {
+    const data = await db.all(`
+      SELECT s.id AS student_id, a.status, a.class_name
+      FROM students s
+      LEFT JOIN TS02_Attendance a ON s.id = a.student_id AND a.date = ?
+      WHERE s.classlevel = ? AND s.classroom = ?
+    `, [date, classlevel, classroom]);
+
+    res.json(data);
+  } catch (err) {
+    console.error('❌ Error fetching attendance status:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 
