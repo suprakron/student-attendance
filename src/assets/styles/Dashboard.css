@@ -163,3 +163,66 @@
 .close-button:hover {
   background: #c53030;
 }
+.student-status {
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+.student-status.present {
+  color: green;
+}
+
+.student-status.not-checked {
+  color: red;
+}
+
+.check-button {
+  margin-left: 10px;
+  background-color: #4CAF50;
+  color: white;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.check-button:hover {
+  background-color: #45a049;
+}
+.student-item {
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.student-class-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.student-info {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+}
+
+.student-status.present {
+  color: green;
+  font-weight: bold;
+}
+
+.student-status.not-checked {
+  color: red;
+  font-weight: bold;
+}
+
+.check-button {
+  margin-top: 5px;
+  background-color: #007bff;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}

@@ -1,58 +1,101 @@
-/* พื้นหลังเต็มหน้าจอ */
-.homepage-container {
+/* หน้า wrapper ทั้งหมด */
+.homepage-wrapper {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
+  background: linear-gradient(to right, #f0f8ff, #e6f7ff);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #003366;
+  color: white;
+  padding: 15px 30px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-logo {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.navbar-links .nav-button {
+  background-color: white;
+  color: #003366;
+  border: none;
+  padding: 8px 14px;
+  margin-left: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.navbar-links .nav-button:hover {
+  background-color: #0059b3;
+  color: white;
+}
+
+/* Homepage main content */
+.homepage-container {
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #cfe9ff, #a6d0f5);
+  padding: 40px 20px;
 }
 
-/* กล่องตรงกลาง */
 .card {
-  background-color: #ffffff;
+  background-color: white;
   padding: 40px;
   border-radius: 20px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   text-align: center;
-  max-width: 400px;
+  max-width: 450px;
   width: 100%;
 }
 
-/* ไอคอน */
 .icon {
-  font-size: 48px;
-  color: #3b82f6;
-  margin-bottom: 15px;
+  font-size: 50px;
+  margin-bottom: 20px;
 }
 
-/* หัวเรื่อง */
 .title {
   font-size: 28px;
-  font-weight: bold;
-  color: #333333;
   margin-bottom: 10px;
+  color: #003366;
 }
 
-/* คำอธิบาย */
 .description {
   font-size: 16px;
-  color: #666666;
   margin-bottom: 25px;
+  color: #333;
 }
 
-/* ปุ่ม */
 .checkin-button {
-  background-color: #3b82f6;
+  background-color: #007bff;
   color: white;
-  border: none;
   padding: 12px 24px;
-  border-radius: 9999px;
   font-size: 16px;
-  font-weight: bold;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .checkin-button:hover {
-  background-color: #2563eb;
+  background-color: #0056b3;
+}
+
+/* Footer */
+.footer {
+  background-color: #003366;
+  color: white;
+  text-align: center;
+  padding: 15px;
+  font-size: 14px;
 }

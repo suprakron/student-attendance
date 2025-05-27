@@ -230,22 +230,17 @@ const dbAll = util.promisify(db.all).bind(db);
 app.get('/api/attendance/unmarked', async (req, res) => {
   const { classlevel, classroom, date } = req.query;
   const today = date || new Date().toISOString().split('T')[0];
-  const className = `${classlevel}/${classroom}`;
 
   try {
-    console.log('Query params:', req.query);
-
     const rows = await dbAll(
       `
-SELECT s.id, s.firstname, s.lastname,
-       a.status, a.class_name
-FROM students s
-LEFT JOIN TS02_Attendance a
-  ON s.id = a.student_id AND a.date = ?
-WHERE s.classlevel = ? AND s.classroom = ?
-
+      SELECT s.firstname, s.lastname, a.status
+      FROM TS01_DetailStudent s
+      LEFT JOIN TS02_Attendance a
+        ON s.id = a.student_id AND a.date = ?
+      WHERE s.classlevel = ? AND s.classroom = ?
       `,
-      [today, className, classlevel, classroom]
+      [today, classlevel, classroom]
     );
 
     res.json(rows);
@@ -254,6 +249,7 @@ WHERE s.classlevel = ? AND s.classroom = ?
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 app.post('/api/attendance/mark', async (req, res) => {
   const { student_id, date, status, remark, class_name } = req.body;
@@ -278,7 +274,7 @@ app.get('/api/attendance/status', async (req, res) => {
   try {
     const data = await db.all(`
       SELECT s.id AS student_id, a.status, a.class_name
-      FROM students s
+      FROM TS01_DetailStudent s
       LEFT JOIN TS02_Attendance a ON s.id = a.student_id AND a.date = ?
       WHERE s.classlevel = ? AND s.classroom = ?
     `, [date, classlevel, classroom]);
@@ -286,6 +282,36 @@ app.get('/api/attendance/status', async (req, res) => {
     res.json(data);
   } catch (err) {
     console.error('❌ Error fetching attendance status:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/attendance/all-classes', async (req, res) => {
+  // ดึงวันที่ปัจจุบันในรูปแบบ YYYY-MM-DD
+  const today = new Date().toISOString().split('T')[0];
+
+  try {
+    const rows = await dbAll(
+      `
+      SELECT 
+        s.id AS student_id,
+        s.firstname,
+        s.lastname,
+        s.classlevel,
+        s.classroom,
+        s.classlevel || '/' || s.classroom AS class_name,
+        a.status
+      FROM TS01_DetailStudent s
+      LEFT JOIN TS02_Attendance a
+        ON s.id = a.student_id AND a.date = ?
+      ORDER BY s.classlevel, s.classroom, s.id
+      `,
+      [today]
+    );
+
+    res.json(rows);
+  } catch (err) {
+    console.error('❌ Error fetching all class attendance for today:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
